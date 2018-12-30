@@ -4,13 +4,13 @@ Entity for Zigbee Home Automation.
 For more details about this component, please refer to the documentation at
 https://home-assistant.io/components/zha/
 """
-from asyncio import sleep
+import asyncio
 import logging
 from random import uniform
 
 from homeassistant.components.zha.const import (
     DATA_ZHA, DATA_ZHA_BRIDGE_ID, DOMAIN)
-from homeassistant.components.zha.helpers import configure_reporting
+from homeassistant.components.zha.helpers import bind_configure_reporting
 from homeassistant.core import callback
 from homeassistant.helpers import entity
 from homeassistant.helpers.device_registry import CONNECTION_ZIGBEE
@@ -25,7 +25,8 @@ class ZhaEntity(entity.Entity):
     _domain = None  # Must be overridden by subclasses
 
     def __init__(self, endpoint, in_clusters, out_clusters, manufacturer,
-                 model, application_listener, unique_id, **kwargs):
+                 model, application_listener, unique_id, new_join=False,
+                 **kwargs):
         """Init ZHA entity."""
         self._device_state_attributes = {}
         ieee = endpoint.device.ieee
@@ -54,6 +55,7 @@ class ZhaEntity(entity.Entity):
         self._endpoint = endpoint
         self._in_clusters = in_clusters
         self._out_clusters = out_clusters
+        self._new_join = new_join
         self._state = None
         self._unique_id = unique_id
 
@@ -77,6 +79,11 @@ class ZhaEntity(entity.Entity):
         for cluster_id, cluster in self._out_clusters.items():
             cluster.add_listener(self._out_listeners.get(cluster_id, self))
 
+        self._endpoint.device.zdo.add_listener(self)
+
+        if self._new_join:
+            self.hass.async_create_task(self.async_configure())
+
         self._initialized = True
 
     async def async_configure(self):
@@ -93,7 +100,7 @@ class ZhaEntity(entity.Entity):
             skip_bind = False  # bind cluster only for the 1st configured attr
             for attr, details in attrs.items():
                 min_report_interval, max_report_interval, change = details
-                await configure_reporting(
+                await bind_configure_reporting(
                     self.entity_id, cluster, attr,
                     min_report=min_report_interval,
                     max_report=max_report_interval,
@@ -102,7 +109,7 @@ class ZhaEntity(entity.Entity):
                     manufacturer=manufacturer
                 )
                 skip_bind = True
-                await sleep(uniform(0.1, 0.5))
+                await asyncio.sleep(uniform(0.1, 0.5))
         _LOGGER.debug("%s: finished configuration", self.entity_id)
 
     def _get_cluster_from_report_config(self, cluster_key):
@@ -150,7 +157,7 @@ class ZhaEntity(entity.Entity):
             }
         }
         """
-        return dict()
+        return {}
 
     @property
     def unique_id(self) -> str:
@@ -162,6 +169,11 @@ class ZhaEntity(entity.Entity):
         """Return device specific state attributes."""
         return self._device_state_attributes
 
+    @property
+    def should_poll(self) -> bool:
+        """Let ZHA handle polling."""
+        return False
+
     @callback
     def attribute_updated(self, attribute, value):
         """Handle an attribute updated on this cluster."""
@@ -170,6 +182,16 @@ class ZhaEntity(entity.Entity):
     @callback
     def zdo_command(self, tsn, command_id, args):
         """Handle a ZDO command received on this cluster."""
+        pass
+
+    @callback
+    def device_announce(self, device):
+        """Handle device_announce zdo event."""
+        self.async_schedule_update_ha_state(force_refresh=True)
+
+    @callback
+    def permit_duration(self, permit_duration):
+        """Handle permit_duration zdo event."""
         pass
 
     @property
