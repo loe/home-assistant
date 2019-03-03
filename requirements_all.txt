@@ -540,7 +540,7 @@ home-assistant-frontend==20190220.0
 # homeassistant.components.zwave
 # homeassistant-pyozw==0.1.2
 # Use custom fork without double dimmer polling
-git+git://github.com/loe/python-openzwave#egg=homeassistant-pyozw
+git+https://github.com/loe/python-openzwave#egg=homeassistant-pyozw
 
 # homeassistant.components.homekit_controller
 homekit==0.12.2
