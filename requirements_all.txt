@@ -538,7 +538,8 @@ holidays==0.9.9
 home-assistant-frontend==20190220.0
 
 # homeassistant.components.zwave
-homeassistant-pyozw==0.1.2
+# Patched version to remove double polling on dimmer shut off
+git+https://github.com/loe/python-openzwave.git@hass#egg=homeassistant-pyozw==0.1.3
 
 # homeassistant.components.homekit_controller
 homekit==0.12.2
