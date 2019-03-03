@@ -68,7 +68,7 @@ if [ "$INSTALL_DLIB" == "yes" ]; then
 fi
 
 # Remove packages
-apt-get remove -y --purge ${PACKAGES_DEV[@]}
+#apt-get remove -y --purge ${PACKAGES_DEV[@]}
 apt-get -y --purge autoremove
 
 # Cleanup
