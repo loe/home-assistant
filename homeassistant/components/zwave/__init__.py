@@ -37,7 +37,7 @@ from .discovery_schemas import DISCOVERY_SCHEMAS
 from .util import (check_node_schema, check_value_schema, node_name,
                    check_has_unique_id, is_node_parsed)
 
-REQUIREMENTS = ['pydispatcher==2.0.5', 'https://github.com/loe/python-openzwave/archive/hass.zip#homeassistant-pyozw==0.1.3']
+REQUIREMENTS = ['pydispatcher==2.0.5', 'homeassistant-pyozw']
 
 _LOGGER = logging.getLogger(__name__)
 
