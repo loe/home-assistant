@@ -523,6 +523,12 @@ async def async_setup_entry(hass, config_entry):
                 .values()):
             if value.index != param:
                 continue
+            if value.type == const.TYPE_BOOL:
+                value.data = int(selection == 'True')
+                _LOGGER.info("Setting config parameter %s on Node %s "
+                             "with bool selection %s", param, node_id,
+                             str(selection))
+                return
             if value.type == const.TYPE_LIST:
                 value.data = str(selection)
                 _LOGGER.info("Setting config parameter %s on Node %s "
