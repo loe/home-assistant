@@ -1165,7 +1165,7 @@ class TestZWaveServices(unittest.TestCase):
         self.hass.services.call('zwave', 'set_config_parameter', {
             const.ATTR_NODE_ID: 14,
             const.ATTR_CONFIG_PARAMETER: 16,
-            const.ATTR_CONFIG_VALUE: True,
+            const.ATTR_CONFIG_VALUE: 'True',
         })
         self.hass.block_till_done()
 
@@ -1175,7 +1175,7 @@ class TestZWaveServices(unittest.TestCase):
         self.hass.services.call('zwave', 'set_config_parameter', {
             const.ATTR_NODE_ID: 14,
             const.ATTR_CONFIG_PARAMETER: 16,
-            const.ATTR_CONFIG_VALUE: False,
+            const.ATTR_CONFIG_VALUE: 'False',
         })
         self.hass.block_till_done()
 
