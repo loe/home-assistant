@@ -1,10 +1,6 @@
-"""
-Will open a port in your router for Home Assistant and provide statistics.
-
-For more details about this component, please refer to the documentation at
-https://home-assistant.io/components/upnp/
-"""
+"""Open ports in your router for Home Assistant and provide statistics."""
 from ipaddress import ip_address
+from operator import itemgetter
 
 import voluptuous as vol
 
@@ -28,9 +24,6 @@ from .const import DOMAIN
 from .const import LOGGER as _LOGGER
 from .device import Device
 
-
-REQUIREMENTS = ['async-upnp-client==0.13.8']
-
 NOTIFICATION_ID = 'upnp_notification'
 NOTIFICATION_TITLE = 'UPnP/IGD Setup'
 
@@ -41,8 +34,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_LOCAL_IP): vol.All(ip_address, cv.string),
         vol.Optional(CONF_PORTS):
             vol.Schema({
-                vol.Any(CONF_HASS, cv.port):
-                    vol.Any(CONF_HASS, cv.port)
+                vol.Any(CONF_HASS, cv.port): vol.Any(CONF_HASS, cv.port)
             })
     }),
 }, extra=vol.ALLOW_EXTRA)
@@ -97,13 +89,17 @@ async def async_discover_and_construct(hass, udn=None) -> Device:
             _LOGGER.warning('Wanted UPnP/IGD device with UDN "%s" not found, '
                             'aborting', udn)
             return None
+        # ensure we're always taking the latest
+        filtered = sorted(filtered, key=itemgetter('st'), reverse=True)
         discovery_info = filtered[0]
     else:
         # get the first/any
         discovery_info = discovery_infos[0]
         if len(discovery_infos) > 1:
+            device_name = discovery_info.get(
+                'usn', discovery_info.get('ssdp_description', ''))
             _LOGGER.info('Detected multiple UPnP/IGD devices, using: %s',
-                         discovery_info['igd_name'])
+                         device_name)
 
     ssdp_description = discovery_info['ssdp_description']
     return await Device.async_create_device(hass, ssdp_description)
